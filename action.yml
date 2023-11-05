@@ -1,0 +1,8 @@
+name: BlinqReleaseBot
+description: 'The Blinq automated release bot'
+branding:
+  icon: 'rocket'
+  color: orange
+runs:
+  using: 'node18'
+  main: 'dist/index.js'

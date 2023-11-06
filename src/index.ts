@@ -6,6 +6,8 @@ const date = new Date();
 
 const app = (app: Probot) => {
   app.on('workflow_dispatch', async (context) => {
+    app.log(`Creating release`);
+
     const releaseInput = context.payload.inputs?.release_title as
       | string
       | undefined;

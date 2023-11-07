@@ -19,6 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: git rm .gitignore
       - run: git add --force node_modules
       - run: git add .
       - run: npx semantic-release

@@ -35,9 +35,15 @@ const app = (app: Probot) => {
       );
     }
 
+    app.log(`Latest commit SHA: ${latestCommit.data.sha}`);
+
     /**
      * Create the release branch
      */
+    app.log(`Creating release branch ${releaseBranch}`, {
+      branch: releaseBranch,
+      sha: latestCommit.data.sha,
+    });
     await context.octokit.rest.git.createRef({
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,

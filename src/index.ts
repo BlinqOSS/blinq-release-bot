@@ -21,12 +21,12 @@ const app = (app: Probot) => {
     const releaseBranch = `release/${releaseDate}-${releaseTitle}`;
 
     /**
-     * Get latest commit for this branch
+     * Get latest commit for the
      */
     const latestCommit = await context.octokit.rest.repos.getBranch({
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,
-      branch: releaseBranch,
+      branch: context.payload.ref,
     });
 
     if (!latestCommit.data.commit) {

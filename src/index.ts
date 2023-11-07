@@ -21,15 +21,15 @@ const app = (app: Probot) => {
     const releaseBranch = `release/${releaseDate}-${releaseTitle}`;
 
     /**
-     * Get latest commit for the
+     * Get the commit SHA for this workflow dispatch
      */
-    const latestCommit = await context.octokit.rest.repos.getBranch({
+    const latestCommit = await context.octokit.rest.repos.getCommit({
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,
-      branch: context.payload.ref,
+      ref: context.payload.ref,
     });
 
-    if (!latestCommit.data.commit) {
+    if (!latestCommit.data.sha) {
       throw new Error(
         `Could not find latest commit for branch ${releaseBranch}`
       );
@@ -42,7 +42,7 @@ const app = (app: Probot) => {
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,
       ref: `refs/heads/${releaseBranch}`,
-      sha: latestCommit.data.commit.sha,
+      sha: latestCommit.data.sha,
     });
 
     /**

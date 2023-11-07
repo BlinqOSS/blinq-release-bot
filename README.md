@@ -1,33 +1,46 @@
-# BlinqReleaseBot
+# blinq-release-bot
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that The Blinq automated release bot
+This GitHub App is for use internally to create releases and generate release notes.
 
-## Setup
+## Description
 
-```sh
-# Install dependencies
-npm install
+The Blinq automated release bot will create a release branch when triggered, generate release notes based on the commit history and push these to GitHub.
 
-# Run the bot
-npm start
+### Usage
+
+Create a `release.yml` workflow in your repository:
+
+```yaml
+name: Create Release
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_title:
+        description: 'Release title'
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Create Release
+        uses: BlinqOSS/blinq-release-bot@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release_title: ${{ github.event.inputs.release_title }}
 ```
 
-## Docker
+To trigger, run the "Create Release" pipeline from your repository.
 
-```sh
-# 1. Build container
-docker build -t BlinqReleaseBot .
+![Create Release](./preview.png)
 
-# 2. Start container
-docker run -e APP_ID=<app-id> -e PRIVATE_KEY=<pem-value> BlinqReleaseBot
-```
+### Contributing
 
-## Contributing
-
-If you have suggestions for how BlinqReleaseBot could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
-
-For more, check out the [Contributing Guide](CONTRIBUTING.md).
-
-## License
-
-[ISC](LICENSE) © 2023 Will Hackett
+This repository requires semantic commit messages. Please use `git-cz` or similar.

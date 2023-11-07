@@ -12,7 +12,7 @@
     "probot-app"
   ],
   "scripts": {
-    "build": "npx ncc build ./src/index.ts && mv ./dist/index.js ./dist/index.mjs",
+    "build": "npx ncc build ./src/index.ts",
     "start": "probot run ./dist/index.mjs",
     "test": "jest"
   },

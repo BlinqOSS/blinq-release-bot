@@ -21,13 +21,28 @@ const app = (app: Probot) => {
     const releaseBranch = `release/${releaseDate}-${releaseTitle}`;
 
     /**
+     * Get latest commit for this branch
+     */
+    const latestCommit = await context.octokit.rest.repos.getBranch({
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+      branch: releaseBranch,
+    });
+
+    if (!latestCommit.data.commit) {
+      throw new Error(
+        `Could not find latest commit for branch ${releaseBranch}`
+      );
+    }
+
+    /**
      * Create the release branch
      */
     await context.octokit.rest.git.createRef({
       owner: context.payload.repository.owner.login,
       repo: context.payload.repository.name,
       ref: `refs/heads/${releaseBranch}`,
-      sha: context.payload.repository.default_branch,
+      sha: latestCommit.data.commit.sha,
     });
 
     /**

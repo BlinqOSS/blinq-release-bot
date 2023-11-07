@@ -18,6 +18,8 @@ const app = (app: Probot) => {
       throw new Error('Missing inputs');
     }
 
+    console.log(context.payload);
+
     app.log(`Creating release`, {
       owner: inputs.org,
       repo: inputs.repo,

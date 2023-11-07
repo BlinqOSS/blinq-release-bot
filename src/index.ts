@@ -18,15 +18,6 @@ const app = (app: Probot) => {
 
     const releaseBranch = `release/${releaseDate}-${releaseTitle}`;
 
-    await context.octokit.rest.git.createRef({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-      ref: `refs/heads/${releaseBranch}`,
-      sha: context.payload.repository.default_branch,
-    });
-
-    app.log(`Created branch ${releaseBranch}`);
-
     const differenceOfCommits = await context.octokit.rest.repos.compareCommits(
       {
         owner: context.payload.repository.owner.login,
@@ -40,22 +31,31 @@ const app = (app: Probot) => {
       `Found ${differenceOfCommits.data.commits.length} commits between ${context.payload.repository.default_branch} and ${releaseBranch}`
     );
 
-    const releaseNotes = differenceOfCommits.data.commits
+    let releaseNotes = differenceOfCommits.data.commits
       .map((commit) => commit.commit.message)
       .join('\n\n');
 
-    await context.octokit.rest.repos.createRelease({
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name,
-      tag_name: `${releaseDate}-${releaseTitle}`,
-      target_commitish: context.payload.repository.default_branch,
-      name: `${releaseDate} ${releaseInput}`,
-      body: releaseNotes,
-      draft: false,
-      prerelease: false,
-    });
+    // If no commits are found, release notes are not available
+    if (releaseNotes.length === 0) {
+      releaseNotes = 'No release notes available.';
+    }
 
-    app.log(`Created release ${releaseTitle}`);
+    try {
+      await context.octokit.rest.repos.createRelease({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        tag_name: `${releaseDate}-${releaseTitle}`,
+        target_commitish: context.payload.repository.default_branch,
+        name: `${releaseDate} ${releaseInput}`,
+        body: releaseNotes,
+        draft: false,
+        prerelease: false,
+      });
+
+      app.log(`Created release ${releaseTitle}`);
+    } catch (error) {
+      app.log(`Error creating release: ${error}`);
+    }
   });
 };
 

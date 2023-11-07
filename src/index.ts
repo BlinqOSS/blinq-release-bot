@@ -6,8 +6,6 @@ const date = new Date();
 
 interface Inputs {
   release_title?: string;
-  org: string;
-  repo: string;
 }
 
 const app = (app: Probot) => {
@@ -21,8 +19,8 @@ const app = (app: Probot) => {
     console.log(context.payload);
 
     app.log(`Creating release`, {
-      owner: inputs.org,
-      repo: inputs.repo,
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
       ref: context.payload.ref,
     });
     /**
@@ -39,8 +37,8 @@ const app = (app: Probot) => {
      * Get the commit SHA for this workflow dispatch
      */
     const latestCommit = await context.octokit.rest.repos.getCommit({
-      owner: inputs.org,
-      repo: inputs.repo,
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
       ref: context.payload.ref,
     });
 
@@ -60,18 +58,21 @@ const app = (app: Probot) => {
       sha: latestCommit.data.sha,
     });
     await context.octokit.rest.git.createRef({
-      owner: inputs.org,
-      repo: inputs.repo,
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
       ref: `refs/heads/${releaseBranch}`,
       sha: latestCommit.data.sha,
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
     });
 
     /**
      * Find the last release
      */
     const lastRelease = await context.octokit.rest.repos.getLatestRelease({
-      owner: inputs.org,
-      repo: inputs.repo,
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
     });
 
     let releaseNotes = 'New release';
@@ -83,8 +84,8 @@ const app = (app: Probot) => {
        */
       const differenceOfCommits =
         await context.octokit.rest.repos.compareCommits({
-          owner: inputs.org,
-          repo: inputs.repo,
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
           base: lastRelease.data.tag_name,
           head: releaseBranch,
         });
@@ -100,8 +101,8 @@ const app = (app: Probot) => {
 
     try {
       await context.octokit.rest.repos.createRelease({
-        owner: inputs.org,
-        repo: inputs.repo,
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
         tag_name: `${releaseDate}-${releaseTitle}`,
         target_commitish: latestCommit.data.sha,
         name: `${releaseDate} ${inputs.release_title ?? 'Release'}`,

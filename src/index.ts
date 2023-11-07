@@ -61,5 +61,5 @@ const app = (app: Probot) => {
 
 githubActions.run(app).catch((error) => {
   console.error(error);
-  process.exit(1);
+  throw error;
 });

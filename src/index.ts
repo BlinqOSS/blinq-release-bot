@@ -7,7 +7,9 @@ const date = new Date();
 const app = (app: Probot) => {
   app.on('workflow_dispatch', async (context) => {
     app.log(`Creating release`);
-
+    /**
+     * Generate a release title
+     */
     const releaseInput = context.payload.inputs?.release_title as
       | string
       | undefined;
@@ -18,26 +20,46 @@ const app = (app: Probot) => {
 
     const releaseBranch = `release/${releaseDate}-${releaseTitle}`;
 
-    const differenceOfCommits = await context.octokit.rest.repos.compareCommits(
-      {
-        owner: context.payload.repository.owner.login,
-        repo: context.payload.repository.name,
-        base: context.payload.repository.default_branch,
-        head: releaseBranch,
-      }
-    );
+    /**
+     * Create the release branch
+     */
+    await context.octokit.rest.git.createRef({
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+      ref: `refs/heads/${releaseBranch}`,
+      sha: context.payload.repository.default_branch,
+    });
 
-    app.log(
-      `Found ${differenceOfCommits.data.commits.length} commits between ${context.payload.repository.default_branch} and ${releaseBranch}`
-    );
+    /**
+     * Find the last release
+     */
+    const lastRelease = await context.octokit.rest.repos.getLatestRelease({
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+    });
 
-    let releaseNotes = differenceOfCommits.data.commits
-      .map((commit) => commit.commit.message)
-      .join('\n\n');
+    let releaseNotes = 'New release';
+    if (lastRelease.data) {
+      app.log(`Found last release ${lastRelease.data.tag_name}`);
 
-    // If no commits are found, release notes are not available
-    if (releaseNotes.length === 0) {
-      releaseNotes = 'No release notes available.';
+      /**
+       * Determine the difference between the last release and the current release
+       */
+      const differenceOfCommits =
+        await context.octokit.rest.repos.compareCommits({
+          owner: context.payload.repository.owner.login,
+          repo: context.payload.repository.name,
+          base: lastRelease.data.tag_name,
+          head: releaseBranch,
+        });
+
+      app.log(
+        `Found ${differenceOfCommits.data.commits.length} commits between ${context.payload.repository.default_branch} and ${releaseBranch}`
+      );
+
+      releaseNotes = differenceOfCommits.data.commits
+        .map((commit) => commit.commit.message)
+        .join('\n\n');
     }
 
     try {

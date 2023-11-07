@@ -20,8 +20,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: git rm .gitignore
-      - run: git add --force node_modules
-      - run: git add .
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

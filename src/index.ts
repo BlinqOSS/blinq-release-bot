@@ -6,7 +6,11 @@ const date = new Date();
 
 const app = (app: Probot) => {
   app.on('workflow_dispatch', async (context) => {
-    app.log(`Creating release`);
+    app.log(`Creating release`, {
+      owner: context.payload.repository.owner.login,
+      repo: context.payload.repository.name,
+      ref: context.payload.ref,
+    });
     /**
      * Generate a release title
      */

@@ -10,3 +10,9 @@ inputs:
   token:
     description: 'GitHub Token'
     required: true
+  org:
+    description: 'GitHub Organization'
+    required: true
+  repo:
+    description: 'GitHub Repository'
+    required: true
